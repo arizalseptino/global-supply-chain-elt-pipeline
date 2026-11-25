@@ -16,8 +16,11 @@ Built to mirror production-grade data platform architecture locally using **Dock
 
 ## Architecture Overview
 
-```text
-+-----------------------+       +-------------------------+
+<p align="center">
+  <img src="docs/architecture_diagram.png" alt="Architecture Overview" width="600"/>
+</p>
+
+-----------------------+       +-------------------------+
 |   PostgreSQL (OLTP)   |       | Frankfurter Currency API|
 |  - sc_shipments (180k)|       |  - Historical USD/IDR   |
 |  - sc_customers       |       |  - Time-Series JSON     |
