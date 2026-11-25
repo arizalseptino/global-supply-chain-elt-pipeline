@@ -36,3 +36,9 @@ clickhouse_data/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local ClickHouse Server Runtime Artifacts
+.clickhouse/
+cores/
+metadata/
+uuid
