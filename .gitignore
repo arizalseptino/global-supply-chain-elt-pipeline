@@ -42,3 +42,9 @@ Thumbs.db
 cores/
 metadata/
 uuid
+
+# Local ClickHouse Server Runtime Artifacts
+.clickhouse/
+cores/
+metadata/
+uuid

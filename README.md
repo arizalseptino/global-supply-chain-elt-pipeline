@@ -122,14 +122,16 @@ hybrid-data-pipeline/
 ├── dags/
 │   └── supply_chain_etl_dag.py      # Airflow DAG orchestrating extract, transform & validation
 ├── scripts/
+│   ├── init_infrastructure.py       # Initializes RustFS buckets & ClickHouse Star Schema DDL
+│   ├── seed_postgres_supply_chain.py # Seeds 180,519 DataCo records into PostgreSQL OLTP
 │   ├── extract_postgres_to_lake.py  # Extracts normalized OLTP tables to RustFS (Bronze)
-│   ├── extract_api_to_lake.py       # Fetches historical USD/IDR rates from Frankfurter API
-│   └── load_to_clickhouse.py        # Creates ClickHouse Star Schema DDL & loads Gold data
+│   └── extract_api_to_lake.py       # Fetches historical USD/IDR rates from Frankfurter API
 ├── spark_jobs/
-│   └── transform_supply_chain.py    # Cleanses data, forward-fills FX rates & writes Parquet
+│   └── transform_supply_chain.py    # Cleanses data, forward-fills FX rates & loads Gold DWH
 ├── docs/
 │   └── grafana_dashboard.png        # Executive dashboard screenshot
 ├── docker-compose.yml               # Multi-container infrastructure definition
+├── requirements.txt                 # Python dependencies
 ├── .gitignore
 └── README.md
 ```
