@@ -1,0 +1,38 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Raw & Processed Local Data (Keep repo lightweight)
+data/*.csv
+data/*.parquet
+data/*.json
+*.csv
+*.parquet
+
+# Environment Variables & Secrets
+.env
+*.pem
+*.key
+
+# Airflow Local Logs & Runtime DB
+logs/
+airflow.db
+airflow.cfg
+webserver_config.py
+
+# Docker Volumes & Local Storage
+postgres_data/
+rustfs_data/
+grafana_data/
+clickhouse_data/
+
+# OS & Editor Artifacts
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

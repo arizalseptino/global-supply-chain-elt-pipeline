@@ -1,0 +1,122 @@
+services:
+  # 1. OLTP Source Database (Simulasi Aplikasi Transaksi)
+  postgres-source:
+    image: postgres:15-alpine
+    container_name: postgres-source
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: adminpassword
+      POSTGRES_DB: ecommerce_oltp
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_source_data:/var/lib/postgresql/data
+    networks:
+      - data_net
+
+  # 2. Metadata Database khusus untuk Apache Airflow
+  postgres-airflow:
+    image: postgres:15-alpine
+    container_name: postgres-airflow
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflowpassword
+      POSTGRES_DB: airflow_meta
+    networks:
+      - data_net
+  
+  # 3. Object Storage / Data Lake (Pengganti Gratis AWS S3 & MinIO)
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    environment:
+      RUSTFS_ACCESS_KEY: minioadmin
+      RUSTFS_SECRET_KEY: minioadminpassword
+    ports:
+      - "9010:9000" # API Endpoint S3 (sama seperti MinIO/AWS S3)
+      - "9011:9001" # Web Console UI
+    volumes:
+      - minio_data:/data
+    networks:
+      - data_net
+  
+  # 4. Event-Driven Message Broker
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitadmin
+      RABBITMQ_DEFAULT_PASS: rabbitpassword
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - data_net
+
+  # 5. Apache Airflow Init
+  airflow-init:
+    image: apache/airflow:2.10.2-python3.11
+    container_name: airflow-init
+    depends_on:
+      - postgres-airflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflowpassword@postgres-airflow/airflow_meta
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    command: >
+      bash -c "airflow db migrate &&
+      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin"
+    networks:
+      - data_net
+
+  # 6. Apache Airflow Webserver & Scheduler
+  airflow-standalone:
+    image: apache/airflow:2.10.2-python3.11
+    container_name: airflow-standalone
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflowpassword@postgres-airflow/airflow_meta
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'super_secret_local_key_change_me'
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./scripts:/opt/airflow/scripts
+      - ./spark_jobs:/opt/airflow/spark_jobs
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: bash -c "airflow scheduler & airflow webserver"
+    networks:
+      - data_net
+
+  # 7. Monitoring & Visualization (Terhubung ke ClickHouse WSL2)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: adminpassword
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+    ports:
+      - "3030:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - data_net
+
+volumes:
+  postgres_source_data:
+  minio_data:
+  grafana_data:
+
+networks:
+  data_net:
+    driver: bridge
