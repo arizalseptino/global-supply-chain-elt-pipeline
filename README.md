@@ -17,7 +17,7 @@ Built to mirror production-grade data platform architecture locally using **Dock
 ## Architecture Overview
 
 <p align="center">
-  <img src="docs/architecture_diagram.png" alt="Architecture Overview" width="420"/>
+  <img src="docs/architecture_diagram.png" alt="Architecture Overview" width="850"/>
 </p>
 
 ---
